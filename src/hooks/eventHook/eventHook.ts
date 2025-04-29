@@ -2,22 +2,50 @@ import { createEvent, deleteEvent, editEvent } from "@/lib/api";
 import { useMutation, UseMutationResult } from "@tanstack/react-query";
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from "sonner";
-import { DeleteEvent, DeleteResponse, EditMutationVariables, EditResponse, ErrorResponse, Event, EventResponse } from "../../../types/event";
+import { DeleteEvent, DeleteResponse, EditMutationVariables, EditResponse, ErrorResponse, EventData, EventResponse } from "../../../types/event";
+
+type CreateEventInput = Omit<EventData, "_id" | "totalTickets">;
+
+// export function useCreateEvent(): UseMutationResult<
+//   EventResponse,
+//   ErrorResponse,
+//   Omit<CreateEventInput, '_id'>
+// > {
+//   const queryClient = useQueryClient();
+//   return useMutation({
+//     mutationFn: createEvent,
+//     onSuccess: (data: EventResponse) => {
+//       toast.success(data.message || "Event created successfully");
+//       console.log("Event created successfully:", data.event);
+//       queryClient.invalidateQueries({ queryKey: ['allEvents'] });
+//     },
+//     onError: (error: ErrorResponse) => {
+//       console.error(
+//         `Event creation error (${error.statusCode || "Unknown"}): ${error.message}`,
+//         error.details
+//       );
+//       toast.error(
+//         error.message || "An unexpected error occurred. Please try again."
+//       );
+//     },
+//   });
+// }
 
 export function useCreateEvent(): UseMutationResult<
   EventResponse,
   ErrorResponse,
-  Omit<Event, 'id'>
+  CreateEventInput
 > {
   const queryClient = useQueryClient();
-  return useMutation({
+
+  return useMutation<EventResponse, ErrorResponse, CreateEventInput>({
     mutationFn: createEvent,
-    onSuccess: (data: EventResponse) => {
+    onSuccess: (data) => {
       toast.success(data.message || "Event created successfully");
       console.log("Event created successfully:", data.event);
-      queryClient.invalidateQueries({ queryKey: ['allEvents'] });
+      queryClient.invalidateQueries({ queryKey: ["allEvents"] });
     },
-    onError: (error: ErrorResponse) => {
+    onError: (error) => {
       console.error(
         `Event creation error (${error.statusCode || "Unknown"}): ${error.message}`,
         error.details

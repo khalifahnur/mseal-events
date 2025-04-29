@@ -1,8 +1,7 @@
 import apiClient from "@/lib/apiClient";
 import { AuthData, AuthResponse, AuthStaff, AuthStaffResponse } from "../../types/auth";
-import { Merchandise } from "@/components/dashboard";
-import { ErrorResponse, MerchResponse } from "../../types/merch";
-import { DeleteResponse, EditResponse, EventResponse } from "../../types/event";
+import { ErrorResponse, MerchResponse,Merchandise } from "../../types/merch";
+import { DeleteResponse, EditResponse, EventData, EventResponse } from "../../types/event";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const loginAdmin = async (data: AuthData): Promise<AuthResponse> => {
@@ -103,9 +102,10 @@ export async function fetchAdminInfo() {
     }
   }
 }
+type CreateEventInput = Omit<EventData, "_id" | "totalTickets">;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const createEvent = async (data: Omit<Event, "id">): Promise<EventResponse> => {
+export const createEvent = async (data:CreateEventInput): Promise<EventResponse> => {
   try {
     const response = await apiClient.post<EventResponse>(
       "/event/create-event",
@@ -185,7 +185,7 @@ export const deleteEvent = async (
 };
 
 export const editEvent = async (
-  updatedItem: Event,
+  updatedItem: EventData,
   itemId: string
 ): Promise<EditResponse> => {
   try {

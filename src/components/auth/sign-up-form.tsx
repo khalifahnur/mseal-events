@@ -57,6 +57,7 @@ export function SignUpForm({ onSignInClick }: SignUpFormProps) {
     }
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { confirmPassword, ...signUpData } = formData;
       toast({
         title: "Admin Registered Successfully!",
@@ -66,7 +67,9 @@ export function SignUpForm({ onSignInClick }: SignUpFormProps) {
 
       await signUpMutation.mutateAsync(signUpData);
       onSignInClick();
-    } catch (err: any) {
+    } 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    catch (err: any) {
       toast({
         title: "Registration Failed",
         description:

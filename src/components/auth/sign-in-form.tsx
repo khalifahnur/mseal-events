@@ -58,6 +58,7 @@ export function SignInForm({ onSignUpClick }: SignInFormProps) {
         description: "Welcome to the main dashboard!",
         variant: "default",
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       toast({
         title: "Sign-In Failed",
@@ -130,7 +131,7 @@ export function SignInForm({ onSignUpClick }: SignInFormProps) {
             )}
           </Button>
           <div className="text-center text-sm">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Button
               variant="link"
               className="p-0 h-auto"

@@ -24,11 +24,7 @@ interface SettingsSectionProps {
   onDeleteStaff: (id: string) => void;
 }
 
-export function SettingsSection({
-  staff,
-  onAddStaff,
-  onDeleteStaff,
-}: SettingsSectionProps) {
+export function SettingsSection({ onDeleteStaff }: SettingsSectionProps) {
   const [showAddStaffForm, setShowAddStaffForm] = useState(false);
 
   const { data, isLoading } = useQuery({
@@ -61,11 +57,7 @@ export function SettingsSection({
           </div>
 
           {showAddStaffForm ? (
-            <StaffSignupTab
-              onSubmit={() => {
-                setShowAddStaffForm(false);
-              }}
-            />
+            <StaffSignupTab />
           ) : (
             <StaffTable staff={data} onDelete={onDeleteStaff} />
           )}

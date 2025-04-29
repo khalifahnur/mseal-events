@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Image from "next/image";
 
 export function DashboardHeader() {
   return (
@@ -47,8 +48,8 @@ export function DashboardHeader() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="rounded-full">
-                <img
-                  src="/placeholder.svg?height=32&width=32"
+                <Image
+                  src="https://img.icons8.com/fluency-systems-regular/48/user--v1.png"
                   alt="Avatar"
                   className="rounded-full"
                   height={32}

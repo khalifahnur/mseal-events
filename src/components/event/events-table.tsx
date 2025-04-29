@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Event } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -42,6 +41,7 @@ import { Label } from "@/components/ui/label";
 import Loader from "../Loader";
 import { toast } from "@/hooks/use-toast";
 import { useDeleteEvent, useEditEvent } from "@/hooks/eventHook/eventHook";
+import { EventData } from "../../../types/event";
 
 function EditItemDialog({
   isOpen,
@@ -51,10 +51,10 @@ function EditItemDialog({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  item: Event;
-  onEditItem: (updatedItem: Event, itemId: string) => void;
+  item: EventData;
+  onEditItem: (updatedItem: EventData, itemId: string) => void;
 }) {
-  const [editedItem, setEditedItem] = useState<Event>(item);
+  const [editedItem, setEditedItem] = useState<EventData>(item);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +68,7 @@ function EditItemDialog({
         <DialogHeader>
           <DialogTitle>Edit Event</DialogTitle>
           <DialogDescription>
-            Make changes to the event here. Click save when you're done.
+            Make changes to the event here. Click save when you&apos;re done.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
@@ -205,7 +205,7 @@ function DeleteConfirmationDialog({
 }
 
 interface EventsTableProps {
-  events: Event[];
+  events: EventData[];
 }
 
 export function EventsTable({ events }: EventsTableProps) {
@@ -215,14 +215,14 @@ export function EventsTable({ events }: EventsTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [eventToEdit, setEventToEdit] = useState<Event | null>(null);
-  const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
+  const [eventToEdit, setEventToEdit] = useState<EventData | null>(null);
+  const [eventToDelete, setEventToDelete] = useState<EventData | null>(null);
   const eventsPerPage = 5;
 
   const editMutation = useEditEvent();
   const deleteMutation = useDeleteEvent();
 
-  const handleEditItem = (updatedItem: Event, itemId: string) => {
+  const handleEditItem = (updatedItem: EventData, itemId: string) => {
     editMutation.mutate({ updatedItem, itemId });
   };
 
@@ -279,12 +279,12 @@ export function EventsTable({ events }: EventsTableProps) {
     editMutation.error,
   ]);
 
-  const handleEditClick = (event: Event) => {
+  const handleEditClick = (event: EventData) => {
     setEventToEdit(event);
     setEditDialogOpen(true);
   };
 
-  const handleDeleteClick = (event: Event) => {
+  const handleDeleteClick = (event: EventData) => {
     setEventToDelete(event);
     setDeleteDialogOpen(true);
   };
@@ -294,12 +294,12 @@ export function EventsTable({ events }: EventsTableProps) {
     const matchesSearch =
       event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       event.venue.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      categoryFilter === "all" || event.category === categoryFilter;
-    const matchesStatus =
-      statusFilter === "all" || event.status === statusFilter;
+    // const matchesCategory =
+    //   categoryFilter === "all" || event.category === categoryFilter;
+    // const matchesStatus =
+    //   statusFilter === "all" || event.status === statusFilter;
 
-    return matchesSearch && matchesCategory && matchesStatus;
+    return matchesSearch;
   });
 
   // Pagination
@@ -312,9 +312,9 @@ export function EventsTable({ events }: EventsTableProps) {
   const totalPages = Math.ceil(filteredEvents?.length / eventsPerPage);
 
   // Get unique categories for filter
-  const categories = Array.from(
-    new Set(events?.map((event) => event.category))
-  );
+  // const categories = Array.from(
+  //   new Set(events?.map((event) => event.category))
+  // );
 
   const getStatus = (
     eventDateStr: string
@@ -376,14 +376,14 @@ export function EventsTable({ events }: EventsTableProps) {
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
-              <SelectContent>
+              {/* <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
                   </SelectItem>
                 ))}
-              </SelectContent>
+              </SelectContent> */}
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[150px]">

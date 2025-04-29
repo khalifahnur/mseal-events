@@ -20,6 +20,8 @@ interface EventFormProps {
   onSuccess?: () => void;
 }
 
+
+
 export function EventForm({ onSuccess }: EventFormProps) {
   const { mutate: createEvent, isPending } = useCreateEvent();
 
@@ -32,14 +34,12 @@ export function EventForm({ onSuccess }: EventFormProps) {
     availableTickets: 0,
   });
 
-  // Convert yyyy-mm-dd to dd/mm/yyyy
   const formatDateForDisplay = (dateString: string) => {
     if (!dateString) return "";
     const [year, month, day] = dateString.split("-");
     return `${day}/${month}/${year}`;
   };
 
-  // Convert dd/mm/yyyy to yyyy-mm-dd
   const formatDateForInput = (dateString: string) => {
     if (!dateString) return "";
     const [day, month, year] = dateString.split("/");
@@ -50,7 +50,6 @@ export function EventForm({ onSuccess }: EventFormProps) {
     const { name, value } = e.target;
 
     if (name === "date") {
-      // For date input, we need to handle the format conversion
       const formattedValue = formatDateForDisplay(value);
       setFormData({
         ...formData,
@@ -70,17 +69,14 @@ export function EventForm({ onSuccess }: EventFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Convert date back to yyyy-mm-dd format before submitting
     const dateForSubmission = formatDateForInput(formData.date);
     const eventDate = new Date(dateForSubmission);
 
-    // Validate date is in the future
     if (eventDate < new Date()) {
       toast.error("Event date must be in the future");
       return;
     }
 
-    // Validate available tickets
     if (formData.availableTickets <= 0) {
       toast.error("Available tickets must be greater than 0");
       return;
@@ -93,7 +89,6 @@ export function EventForm({ onSuccess }: EventFormProps) {
       },
       {
         onSuccess: () => {
-          // Reset form after successful submission
           setFormData({
             name: "",
             date: "",

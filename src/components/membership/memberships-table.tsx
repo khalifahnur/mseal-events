@@ -72,7 +72,7 @@ export function MembershipsTable({ memberships, onDelete }: MembershipsTableProp
       case "shipped":
         return "secondary"
       case "delivered":
-        return "success"
+        return "outline"
       default:
         return "outline"
     }

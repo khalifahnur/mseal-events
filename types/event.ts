@@ -1,4 +1,4 @@
-export interface Event {
+export interface EventData {
   _id: string;
   name: string;
   date: string;
@@ -6,11 +6,12 @@ export interface Event {
   venue: string;
   ticketPrice: number;
   availableTickets: number;
+  totalTickets:number
 }
 
 export interface EventResponse {
   message: string;
-  event?: Event;
+  event?: EventData;
 }
 
 export interface ErrorResponse {
@@ -34,6 +35,6 @@ export interface EditResponse {
 }
 
 export interface EditMutationVariables {
-  updatedItem: Event;
+  updatedItem: EventData;
   itemId:string;
 }

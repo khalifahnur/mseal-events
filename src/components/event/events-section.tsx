@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import type { Event } from "@/components/dashboard"
 import { EventForm } from "@/components/event/event-form"
 import { EventsTable } from "@/components/event/events-table"
 import { Button } from "@/components/ui/button"
@@ -9,14 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useQuery } from "@tanstack/react-query"
 import { fetchEvents } from "@/lib/api"
 import Loader from "../Loader"
+import { EventData } from "../../../types/event"
 
-interface EventsSectionProps {
-  events: Event[]
-  onAddEvent: (event: Omit<Event, "id">) => void
-  onDeleteEvent: (id: string) => void
-};
+// interface EventsSectionProps {
+//   events?: Event[]
+//   onAddEvent: (event: Omit<Event, "id">) => void
+//   onDeleteEvent: (id: string) => void
+// };
 
-export function EventsSection({ events, onAddEvent, onDeleteEvent }: EventsSectionProps) {
+export function EventsSection() {
   const [showAddForm, setShowAddForm] = useState(false)
 
   const { data, isLoading } = useQuery({
@@ -30,8 +30,8 @@ export function EventsSection({ events, onAddEvent, onDeleteEvent }: EventsSecti
   if (isLoading) return <Loader />;
 
   const totalEvents = data?.events.length
-  const totalTickets = data?.events.reduce((acc, event) => acc + event.totalTickets, 0)
-  const totalRevenue = data?.events.reduce((acc, event) => acc + event.ticketPrice * event.totalTickets, 0)
+  const totalTickets = data?.events.reduce((acc:number, event:EventData) => acc + event.totalTickets, 0)
+  const totalRevenue = data?.events.reduce((acc:number, event:EventData) => acc + event.ticketPrice * event.totalTickets, 0)
 
   return (
     <div className="space-y-6">
@@ -71,13 +71,9 @@ export function EventsSection({ events, onAddEvent, onDeleteEvent }: EventsSecti
 
       {showAddForm ? (
         <EventForm
-          onSubmit={(event) => {
-            onAddEvent(event)
-            setShowAddForm(false)
-          }}
         />
       ) : (
-        <EventsTable events={data?.events} onDelete={onDeleteEvent} />
+        <EventsTable events={data?.events} />
       )}
     </div>
   )

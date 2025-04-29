@@ -6,21 +6,11 @@ import { MerchandiseForm } from "@/components/merchandise/merchandise-form";
 import { MerchandiseTable } from "@/components/merchandise/merchandise-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Ticket } from "lucide-react";
 import Loader from "../Loader";
 import { fetchAllMerchandise } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
-interface MerchandiseSectionProps {
-  merchandise: Merchandise[];
-  onAddMerchandise: (item: Omit<Merchandise, "id">) => void;
-  onDeleteMerchandise: (id: string) => void;
-}
-
-export function MerchandiseSection({
-  onAddMerchandise,
-  onDeleteMerchandise,
-}: MerchandiseSectionProps) {
+export function MerchandiseSection() {
   const [showAddForm, setShowAddForm] = useState(false);
 
   const { data, isLoading } = useQuery({
@@ -51,9 +41,9 @@ export function MerchandiseSection({
   // }
 
   const totalItems = data?.count;
-  const totalStock = data?.items.reduce((acc, item) => acc + item.stock, 0);
+  const totalStock = data?.items.reduce((acc:number, item:Merchandise) => acc + item.stock, 0);
   const totalValue = data?.items.reduce(
-    (acc, item) => acc + item.price * item.stock,
+    (acc:number, item:Merchandise) => acc + item.price * item.stock,
     0
   );
 
@@ -103,15 +93,13 @@ export function MerchandiseSection({
 
       {showAddForm ? (
         <MerchandiseForm
-          onSubmit={(item) => {
-            onAddMerchandise(item);
+          onSubmit={() => {
             setShowAddForm(false);
           }}
         />
       ) : (
         <MerchandiseTable
           merchandise={data?.items}
-          onDelete={onDeleteMerchandise}
         />
       )}
     </div>

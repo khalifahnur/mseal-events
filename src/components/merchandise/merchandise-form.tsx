@@ -2,7 +2,6 @@
 
 import type React from "react"
 import { useState } from "react"
-import type { Merchandise } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,9 +10,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useCreateMerchandise } from "@/hooks/merchHook/useMerchandise"
 import { toast } from "sonner"
+import { Merchandise } from "../../../types/merch"
 
 interface MerchandiseFormProps {
-  onSubmit: (item: Omit<Merchandise, "id">) => void
+  onSubmit: (item: Omit<Merchandise, "_id">) => void
 }
 
 

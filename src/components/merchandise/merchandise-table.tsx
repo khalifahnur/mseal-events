@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Merchandise } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -49,6 +48,7 @@ import Image from "next/image";
 import { useDeleteMerch, useEditMerch } from "@/hooks/merchHook/useMerchandise";
 import { toast } from "@/hooks/use-toast";
 import Loader from "../Loader";
+import { Merchandise } from "../../../types/merch";
 
 function EditMerchDialog({
   isOpen,
@@ -65,7 +65,7 @@ function EditMerchDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onEditItem(editedItem, item._id);
+    onEditItem(editedItem, item._id || '');
     onClose();
   };
 
@@ -75,7 +75,7 @@ function EditMerchDialog({
         <DialogHeader>
           <DialogTitle>Edit Merchandise</DialogTitle>
           <DialogDescription>
-            Make changes to the merchandise item here. Click save when you're done.
+            Make changes to the merchandise item here. Click save when you&apos;re done.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
@@ -236,7 +236,7 @@ export function MerchandiseTable({ merchandise }: MerchandiseTableProps) {
   const handleDeleteItem = () => {
     if (merchToDelete) {
       deleteMutation.mutate({
-        itemId: merchToDelete._id,
+        itemId: merchToDelete._id || '',
       });
     }
   };
@@ -369,7 +369,7 @@ export function MerchandiseTable({ merchandise }: MerchandiseTableProps) {
                     <TableCell className="hidden md:table-cell">{item.category}</TableCell>
                     <TableCell className="hidden lg:table-cell max-w-xs truncate">{item.description}</TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      <Image src={item.imageUrl} width={40} height={40} alt={item.name} className="object-cover" />
+                      <Image src={item.imageUrl || ''} width={40} height={40} alt={item.name} className="object-cover" />
                     </TableCell>
                     <TableCell>Ksh {item.price.toFixed(2)}</TableCell>
                     <TableCell>{item.stock}</TableCell>

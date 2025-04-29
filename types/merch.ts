@@ -1,5 +1,5 @@
 export interface Merchandise {
-    id: string;
+    _id?: string;
     name: string;
     description: string;
     price: number;
