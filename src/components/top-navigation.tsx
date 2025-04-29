@@ -30,7 +30,7 @@ export function TopNavigation({ activeSection, setActiveSection }: TopNavigation
       <div className="container mx-auto">
         <div className="flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold">EventMaster</h1>
+            <h1 className="text-xl font-bold">M-seal Master</h1>
           </div>
 
           <nav className="hidden md:flex items-center space-x-4">
