@@ -1,12 +1,15 @@
 export interface EventData {
   _id: string;
-  name: string;
+  homeTeam: string;
+  awayTeam: string;
   date: string;
   time: string;
   venue: string;
   ticketPrice: number;
   availableTickets: number;
-  totalTickets:number
+  totalTickets: number;
+  homeLogoUrl: string;
+  opponentLogoUrl: string;
 }
 
 export interface EventResponse {
@@ -36,5 +39,5 @@ export interface EditResponse {
 
 export interface EditMutationVariables {
   updatedItem: EventData;
-  itemId:string;
+  itemId: string;
 }
