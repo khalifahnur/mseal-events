@@ -19,7 +19,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ChevronLeft, ChevronRight, Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -29,180 +36,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogDescription,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import Loader from "../Loader";
 import { toast } from "@/hooks/use-toast";
 import { useDeleteEvent, useEditEvent } from "@/hooks/eventHook/eventHook";
 import { EventData } from "../../../types/event";
-
-function EditItemDialog({
-  isOpen,
-  onClose,
-  item,
-  onEditItem,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  item: EventData;
-  onEditItem: (updatedItem: EventData, itemId: string) => void;
-}) {
-  const [editedItem, setEditedItem] = useState<EventData>(item);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onEditItem(editedItem, item._id);
-    onClose();
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Edit Event</DialogTitle>
-          <DialogDescription>
-            Make changes to the event here. Click save when you&apos;re done.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
-              <Input
-                id="date"
-                name="date"
-                type="date"
-                value={editedItem.date}
-                onChange={(e) =>
-                  setEditedItem({ ...editedItem, date: e.target.value })
-                }
-                min={new Date().toISOString().split("T")[0]}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="time">Time</Label>
-              <Input
-                id="time"
-                name="time"
-                type="time"
-                value={editedItem.time}
-                onChange={(e) =>
-                  setEditedItem({ ...editedItem, time: e.target.value })
-                }
-                required
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="edit-name" className="text-right">
-              Name
-            </Label>
-            <Input
-              id="edit-name"
-              value={editedItem.name}
-              onChange={(e) =>
-                setEditedItem({ ...editedItem, name: e.target.value })
-              }
-              className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="edit-venue" className="text-right">
-              Venue
-            </Label>
-            <Input
-              id="edit-venue"
-              value={editedItem.venue}
-              onChange={(e) =>
-                setEditedItem({ ...editedItem, venue: e.target.value })
-              }
-              className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="edit-price" className="text-right">
-              Ticket Price
-            </Label>
-            <Input
-              id="edit-price"
-              type="number"
-              value={editedItem.ticketPrice}
-              onChange={(e) =>
-                setEditedItem({
-                  ...editedItem,
-                  ticketPrice: Number(e.target.value),
-                })
-              }
-              className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="edit-tickets" className="text-right">
-              Total Tickets
-            </Label>
-            <Input
-              id="edit-tickets"
-              type="number"
-              value={editedItem.totalTickets}
-              onChange={(e) =>
-                setEditedItem({
-                  ...editedItem,
-                  totalTickets: Number(e.target.value),
-                })
-              }
-              className="col-span-3"
-            />
-          </div>
-          <DialogFooter>
-            <Button type="submit">Save changes</Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function DeleteConfirmationDialog({
-  isOpen,
-  onClose,
-  onConfirm,
-  itemName,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  itemName: string | undefined;
-}) {
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Confirm Deletion</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete {itemName}? This action cannot be
-            undone.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="destructive" onClick={onConfirm}>
-            Delete
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
+import EditItemDialog from "./EditDialog";
+import DeleteConfirmationDialog from "./DeleteDialog";
+import PreviewItemDialog from "./PreviewDialog";
 
 interface EventsTableProps {
   events: EventData[];
@@ -217,6 +57,9 @@ export function EventsTable({ events }: EventsTableProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState<EventData | null>(null);
   const [eventToDelete, setEventToDelete] = useState<EventData | null>(null);
+  const [eventToPreview, setEventToPreview] = useState<EventData | null>(null);
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+
   const eventsPerPage = 5;
 
   const editMutation = useEditEvent();
@@ -289,11 +132,17 @@ export function EventsTable({ events }: EventsTableProps) {
     setDeleteDialogOpen(true);
   };
 
+  const handlePreviewClick = (event: EventData) => {
+    setEventToPreview(event);
+    setPreviewDialogOpen(true);
+  };
+
   // Filter events based on search term and filters
   const filteredEvents = events?.filter((event) => {
     const matchesSearch =
-      event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.venue.toLowerCase().includes(searchTerm.toLowerCase());
+      event.homeTeam.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.awayTeam.toLowerCase().includes(searchTerm.toLowerCase());
+    event.venue.toLowerCase().includes(searchTerm.toLowerCase());
     // const matchesCategory =
     //   categoryFilter === "all" || event.category === categoryFilter;
     // const matchesStatus =
@@ -403,7 +252,8 @@ export function EventsTable({ events }: EventsTableProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Event</TableHead>
+                <TableHead className="hidden md:table-cell">Home</TableHead>
+                <TableHead className="hidden md:table-cell">Away</TableHead>
                 <TableHead className="hidden md:table-cell">
                   Date & Time
                 </TableHead>
@@ -420,7 +270,30 @@ export function EventsTable({ events }: EventsTableProps) {
               {currentEvents?.length > 0 ? (
                 currentEvents?.map((event) => (
                   <TableRow key={event._id}>
-                    <TableCell className="font-medium">{event.name}</TableCell>
+                    <TableCell className="font-medium ">
+                      {/* <Image
+                        src={event.opponentLogoUrl}
+                        alt={event.homeTeam}
+                        width={40}
+                        height={40}
+                        className="rounded-full"
+                        loading="lazy"
+                        unoptimized
+                      /> */}
+                      {event.homeTeam}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {/* <Image
+                        src={event.opponentLogoUrl}
+                        alt={event.awayTeam}
+                        width={40}
+                        height={40}
+                        className="rounded-full"
+                        loading="lazy"
+                        unoptimized
+                      /> */}
+                      {event.awayTeam}
+                    </TableCell>
                     <TableCell className="hidden md:table-cell">
                       {new Date(event.date).toLocaleDateString()} at{" "}
                       {event.time}
@@ -452,15 +325,21 @@ export function EventsTable({ events }: EventsTableProps) {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handlePreviewClick(event)}
+                          >
                             <Eye className="mr-2 h-4 w-4" />
                             View details
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEditClick(event)}>
+                          <DropdownMenuItem
+                            onClick={() => handleEditClick(event)}
+                          >
                             <Pencil className="mr-2 h-4 w-4" />
                             Edit event
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDeleteClick(event)}>
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteClick(event)}
+                          >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete event
                           </DropdownMenuItem>
@@ -492,6 +371,17 @@ export function EventsTable({ events }: EventsTableProps) {
           />
         )}
 
+        {eventToPreview && (
+          <PreviewItemDialog
+            isOpen={previewDialogOpen}
+            onClose={() => {
+              setPreviewDialogOpen(false);
+              setEventToPreview(null);
+            }}
+            item={eventToPreview}
+          />
+        )}
+
         <DeleteConfirmationDialog
           isOpen={deleteDialogOpen}
           onClose={() => {
@@ -499,7 +389,7 @@ export function EventsTable({ events }: EventsTableProps) {
             setEventToDelete(null);
           }}
           onConfirm={handleDeleteItem}
-          itemName={eventToDelete?.name}
+          itemName={eventToDelete?.homeTeam}
         />
 
         {filteredEvents?.length > eventsPerPage && (
