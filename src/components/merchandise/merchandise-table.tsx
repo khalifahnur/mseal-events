@@ -35,182 +35,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogDescription,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+
 import Image from "next/image";
 import { useDeleteMerch, useEditMerch } from "@/hooks/merchHook/useMerchandise";
 import { toast } from "@/hooks/use-toast";
 import Loader from "../Loader";
 import { Merchandise } from "../../../types/merch";
-
-function EditMerchDialog({
-  isOpen,
-  onClose,
-  item,
-  onEditItem,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  item: Merchandise;
-  onEditItem: (updatedItem: Merchandise, itemId: string) => void;
-}) {
-  const [editedItem, setEditedItem] = useState<Merchandise>(item);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onEditItem(editedItem, item._id || '');
-    onClose();
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Edit Merchandise</DialogTitle>
-          <DialogDescription>
-            Make changes to the merchandise item here. Click save when you&apos;re done.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="edit-name" className="text-right">
-              Name
-            </Label>
-            <Input
-              id="edit-name"
-              value={editedItem.name}
-              onChange={(e) =>
-                setEditedItem({ ...editedItem, name: e.target.value })
-              }
-              className="col-span-3"
-              required
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="edit-category" className="text-right">
-              Category
-            </Label>
-            <Input
-              id="edit-category"
-              value={editedItem.category}
-              onChange={(e) =>
-                setEditedItem({ ...editedItem, category: e.target.value })
-              }
-              className="col-span-3"
-              required
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="edit-description" className="text-right">
-              Description
-            </Label>
-            <Input
-              id="edit-description"
-              value={editedItem.description}
-              onChange={(e) =>
-                setEditedItem({ ...editedItem, description: e.target.value })
-              }
-              className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="edit-image" className="text-right">
-              Image URL
-            </Label>
-            <Input
-              id="edit-image"
-              value={editedItem.imageUrl}
-              onChange={(e) =>
-                setEditedItem({ ...editedItem, imageUrl: e.target.value })
-              }
-              className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="edit-price" className="text-right">
-              Price
-            </Label>
-            <Input
-              id="edit-price"
-              type="number"
-              value={editedItem.price}
-              onChange={(e) =>
-                setEditedItem({
-                  ...editedItem,
-                  price: Number(e.target.value),
-                })
-              }
-              className="col-span-3"
-              required
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="edit-stock" className="text-right">
-              Stock
-            </Label>
-            <Input
-              id="edit-stock"
-              type="number"
-              value={editedItem.stock}
-              onChange={(e) =>
-                setEditedItem({
-                  ...editedItem,
-                  stock: Number(e.target.value),
-                })
-              }
-              className="col-span-3"
-              required
-            />
-          </div>
-          <DialogFooter>
-            <Button type="submit">Save changes</Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function DeleteConfirmationDialog({
-  isOpen,
-  onClose,
-  onConfirm,
-  itemName,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  itemName: string | undefined;
-}) {
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Confirm Deletion</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete {itemName}? This action cannot be
-            undone.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="destructive" onClick={onConfirm}>
-            Delete
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
+import EditMerchDialog from "./EditMerch";
+import DeleteConfirmationDialog from "./DeleteMerch";
+import PreviewMerchDialog from "./PreviewMerch";
 
 interface MerchandiseTableProps {
   merchandise: Merchandise[];
@@ -224,6 +57,10 @@ export function MerchandiseTable({ merchandise }: MerchandiseTableProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [merchToEdit, setMerchToEdit] = useState<Merchandise | null>(null);
   const [merchToDelete, setMerchToDelete] = useState<Merchandise | null>(null);
+  const [merchToPreview, setmerchToPreview] = useState<Merchandise | null>(
+    null
+  );
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   const itemsPerPage = 5;
 
   const merchMutation = useEditMerch();
@@ -236,7 +73,7 @@ export function MerchandiseTable({ merchandise }: MerchandiseTableProps) {
   const handleDeleteItem = () => {
     if (merchToDelete) {
       deleteMutation.mutate({
-        itemId: merchToDelete._id || '',
+        itemId: merchToDelete._id || "",
       });
     }
   };
@@ -286,6 +123,11 @@ export function MerchandiseTable({ merchandise }: MerchandiseTableProps) {
     merchMutation.error,
   ]);
 
+  const handlePreviewClick = (item: Merchandise) => {
+    setmerchToPreview(item);
+    setPreviewDialogOpen(true);
+  };
+
   const handleEditClick = (item: Merchandise) => {
     setMerchToEdit(item);
     setEditDialogOpen(true);
@@ -296,24 +138,24 @@ export function MerchandiseTable({ merchandise }: MerchandiseTableProps) {
     setDeleteDialogOpen(true);
   };
 
-  // Filter merchandise based on search term and filters
   const filteredItems = merchandise?.filter((item) => {
     const matchesSearch =
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === "all" || item.category === categoryFilter;
+    const matchesCategory =
+      categoryFilter === "all" || item.category === categoryFilter;
 
     return matchesSearch && matchesCategory;
   });
 
-  // Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
-  // Get unique categories for filter
-  const categories = Array.from(new Set(merchandise.map((item) => item.category)));
+  const categories = Array.from(
+    new Set(merchandise.map((item) => item.category))
+  );
 
   if (merchMutation.isPending || deleteMutation.isPending) return <Loader />;
   if (merchMutation.isError || deleteMutation.isError)
@@ -354,7 +196,9 @@ export function MerchandiseTable({ merchandise }: MerchandiseTableProps) {
               <TableRow>
                 <TableHead>Item</TableHead>
                 <TableHead className="hidden md:table-cell">Category</TableHead>
-                <TableHead className="hidden lg:table-cell">Description</TableHead>
+                <TableHead className="hidden lg:table-cell">
+                  Description
+                </TableHead>
                 <TableHead className="hidden lg:table-cell">Image</TableHead>
                 <TableHead>Price</TableHead>
                 <TableHead>Stock</TableHead>
@@ -366,10 +210,20 @@ export function MerchandiseTable({ merchandise }: MerchandiseTableProps) {
                 currentItems.map((item) => (
                   <TableRow key={item._id}>
                     <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell className="hidden md:table-cell">{item.category}</TableCell>
-                    <TableCell className="hidden lg:table-cell max-w-xs truncate">{item.description}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {item.category}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell max-w-xs truncate">
+                      {item.description}
+                    </TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      <Image src={item.imageUrl || ''} width={40} height={40} alt={item.name} className="object-cover" />
+                      <Image
+                        src={item.imageUrl || ""}
+                        width={40}
+                        height={40}
+                        alt={item.name}
+                        className="object-cover"
+                      />
                     </TableCell>
                     <TableCell>Ksh {item.price.toFixed(2)}</TableCell>
                     <TableCell>{item.stock}</TableCell>
@@ -384,15 +238,21 @@ export function MerchandiseTable({ merchandise }: MerchandiseTableProps) {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handlePreviewClick(item)}
+                          >
                             <Eye className="mr-2 h-4 w-4" />
                             View details
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEditClick(item)}>
+                          <DropdownMenuItem
+                            onClick={() => handleEditClick(item)}
+                          >
                             <Pencil className="mr-2 h-4 w-4" />
                             Edit merchandise
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDeleteClick(item)}>
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteClick(item)}
+                          >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete merchandise
                           </DropdownMenuItem>
@@ -411,6 +271,17 @@ export function MerchandiseTable({ merchandise }: MerchandiseTableProps) {
             </TableBody>
           </Table>
         </div>
+
+        {merchToPreview && (
+          <PreviewMerchDialog
+            isOpen={previewDialogOpen}
+            onClose={() => {
+              setPreviewDialogOpen(false);
+              setmerchToPreview(null);
+            }}
+            item={merchToPreview}
+          />
+        )}
 
         {merchToEdit && (
           <EditMerchDialog
