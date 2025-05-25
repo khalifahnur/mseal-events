@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import Image from "next/image"
-import { Calendar, Clock, MapPin, Ticket, Users, DollarSign } from "lucide-react"
+import { Calendar, Clock, MapPin, Ticket, Users } from "lucide-react"
 
 export default function PreviewItemDialog({
   isOpen,

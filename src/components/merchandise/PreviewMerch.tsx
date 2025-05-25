@@ -68,6 +68,7 @@ export default function PreviewMerchDialog({
                     />
                     <div className="absolute top-2 right-2">
                       <Badge
+                        // disable-eslint@typescript-eslint/no-explicit-any
                         variant={stockStatus.color as any}
                         className="shadow-md"
                       >
