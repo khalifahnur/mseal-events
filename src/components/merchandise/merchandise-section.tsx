@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import type { Merchandise } from "@/components/dashboard";
 import { MerchandiseForm } from "@/components/merchandise/merchandise-form";
 import { MerchandiseTable } from "@/components/merchandise/merchandise-table";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Loader from "../Loader";
 import { fetchAllMerchandise } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
+import { Merchandise } from "../../../types/merch";
 
 export function MerchandiseSection() {
   const [showAddForm, setShowAddForm] = useState(false);

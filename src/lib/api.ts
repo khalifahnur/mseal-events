@@ -312,3 +312,23 @@ export const editMerchandise = async (
     }
   }
 };
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export async function fetchMembersInfo() {
+  try {
+    const response = await apiClient.get("/auth-admin/fetch-membership-info");
+    return response.data;
+  } catch (error: any) {
+    if (error?.response) {
+      console.error("Error fetching members info:", error.response);
+      // Show a more specific error message
+      const errorMessage =
+        error?.response?.data?.message || "Error fetching members info.";
+      throw new Error(errorMessage);
+    } else {
+      // response (network issues, etc.)
+      console.error("Network error or no response:", error);
+      throw new Error("Network error or no response from server.");
+    }
+  }
+}

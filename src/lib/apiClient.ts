@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "https://msealserver-production.up.railway.app/mseal",
+  baseURL: "https://zr91pvkn-3002.uks1.devtunnels.ms/mseal",//"http://localhost:3002/mseal", //https://msealserver-production.up.railway.app/mseal",
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",

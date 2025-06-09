@@ -28,10 +28,10 @@ interface Staff {
 
 interface StaffTableProps {
   staff: Staff[];
-  onDelete: (id: string) => void;
+  // onDelete: (id: string) => void;
 }
 
-export function StaffTable({ staff, onDelete }: StaffTableProps) {
+export function StaffTable({ staff }: StaffTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 5
@@ -110,7 +110,7 @@ export function StaffTable({ staff, onDelete }: StaffTableProps) {
                             <Key className="mr-2 h-4 w-4" />
                             Reset password
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onDelete(member._id)}>
+                          <DropdownMenuItem >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete staff
                           </DropdownMenuItem>
