@@ -10,12 +10,6 @@ import { fetchEvents } from "@/lib/api"
 import Loader from "../Loader"
 import { EventData } from "../../../types/event"
 
-// interface EventsSectionProps {
-//   events?: Event[]
-//   onAddEvent: (event: Omit<Event, "id">) => void
-//   onDeleteEvent: (id: string) => void
-// };
-
 export function EventsSection() {
   const [showAddForm, setShowAddForm] = useState(false)
 

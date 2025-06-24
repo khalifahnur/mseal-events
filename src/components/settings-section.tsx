@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import type { Staff } from "@/components/dashboard";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,13 +17,9 @@ import Loader from "./Loader";
 import Account from "./settings/account/account";
 import { StaffTable } from "./settings/staff/staff-table";
 
-interface SettingsSectionProps {
-  staff: Staff[];
-  onAddStaff: (staff: Omit<Staff, "id">) => void;
-  onDeleteStaff: (id: string) => void;
-}
 
-export function SettingsSection({ onDeleteStaff }: SettingsSectionProps) {
+
+export function SettingsSection() {
   const [showAddStaffForm, setShowAddStaffForm] = useState(false);
 
   const { data, isLoading } = useQuery({
@@ -59,7 +54,7 @@ export function SettingsSection({ onDeleteStaff }: SettingsSectionProps) {
           {showAddStaffForm ? (
             <StaffSignupTab />
           ) : (
-            <StaffTable staff={data} onDelete={onDeleteStaff} />
+            <StaffTable staff={data}  />
           )}
         </TabsContent>
 

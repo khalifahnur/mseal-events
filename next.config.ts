@@ -19,6 +19,11 @@ module.exports = {
           "res.cloudinary.com",
         pathname: "**",
       },
+      {
+        protocol: "https",
+        hostname: "www.murangaseal.com",
+        pathname: "**",
+      },
     ],
   },
 };

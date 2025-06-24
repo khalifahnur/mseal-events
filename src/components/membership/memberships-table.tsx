@@ -1,9 +1,10 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import type { Membership } from "@/components/dashboard"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,71 +12,148 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ChevronLeft, ChevronRight, Edit, MoreHorizontal, Trash2, Eye, CreditCard } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+} from "@/components/ui/dropdown-menu";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  ChevronLeft,
+  ChevronRight,
+  MoreHorizontal,
+  Eye,
+  CreditCard,
+  Lock,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { fetchMembersInfo } from "@/lib/api";
+import MembershipPreviewDialog from "./PreviewDialog";
+import { Membership } from "../../../types/membership";
 
-interface MembershipsTableProps {
-  memberships: Membership[]
-  onDelete: (id: string) => void
-}
+// interface MembershipsTableProps {
+//   onDelete: (id: string) => void;
+// }
 
-export function MembershipsTable({ memberships, onDelete }: MembershipsTableProps) {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [typeFilter, setTypeFilter] = useState("all")
-  const [cardFilter, setCardFilter] = useState("all")
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 5
+export function MembershipsTable() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [cardFilter, setCardFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [memberToPreview, setMemberToPreview] = useState<Membership | null>(
+    null
+  );
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+  const itemsPerPage = 5;
 
-  // Filter memberships based on search term and filters
-  const filteredItems = memberships.filter((member) => {
+  const {
+    data: memberships = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["membersInfo"],
+    queryFn: fetchMembersInfo,
+    staleTime: 5 * 60 * 1000,
+    retry: 2,
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const transformedMemberships: Membership[] = memberships.map((member:any) => ({
+    id: member.membershipId || member.email,
+    name: `${member.firstName} ${member.lastName}`,
+    email: member.email,
+    joinDate: member.createdAt || new Date(),
+    type: member.membershipTier || "none",
+    needsPhysicalCard: !member.physicalIdIssued,
+    cardStatus: !member.physicalIdIssued ? "pending" : "delivered",
+    lockRequested: member.lockRequested,
+    balance: member.balance,
+    qrcode: member.qrcode,
+    expDate: member.expDate,
+  }));
+
+  const filteredItems = transformedMemberships.filter((member) => {
     const matchesSearch =
       member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesType = typeFilter === "all" || member.type === typeFilter
+      member.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = typeFilter === "all" || member.type === typeFilter;
     const matchesCard =
       cardFilter === "all" ||
       (cardFilter === "needs-card" && member.needsPhysicalCard) ||
-      (cardFilter === "no-card" && !member.needsPhysicalCard)
+      (cardFilter === "no-card" && !member.needsPhysicalCard);
 
-    return matchesSearch && matchesType && matchesCard
-  })
+    return matchesSearch && matchesType && matchesCard;
+  });
 
-  // Pagination
-  const indexOfLastItem = currentPage * itemsPerPage
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage
-  const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem)
-  const totalPages = Math.ceil(filteredItems.length / itemsPerPage)
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
   const getTypeBadgeVariant = (type: string) => {
     switch (type) {
-      case "standard":
-        return "outline"
-      case "premium":
-        return "default"
-      case "vip":
-        return "secondary"
+      case "none":
+        return "outline";
+      case "bronze":
+        return "outline";
+      case "silver":
+        return "default";
+      case "gold":
+        return "secondary";
       default:
-        return "outline"
+        return "outline";
     }
-  }
+  };
 
   const getCardStatusBadgeVariant = (status: string) => {
     switch (status) {
       case "pending":
-        return "outline"
+        return "outline";
       case "processing":
-        return "default"
+        return "default";
       case "shipped":
-        return "secondary"
+        return "secondary";
       case "delivered":
-        return "outline"
+        return "outline";
       default:
-        return "outline"
+        return "outline";
     }
+  };
+
+  const handlePreviewClick = (member: Membership) => {
+    setMemberToPreview(member);
+    setPreviewDialogOpen(true);
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center">
+          Loading members...
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center text-red-500">
+          Error: {(error as Error).message}
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -97,9 +175,10 @@ export function MembershipsTable({ memberships, onDelete }: MembershipsTableProp
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="standard">Standard</SelectItem>
-                <SelectItem value="premium">Premium</SelectItem>
-                <SelectItem value="vip">VIP</SelectItem>
+                <SelectItem value="none">None</SelectItem>
+                <SelectItem value="bronze">Bronze</SelectItem>
+                <SelectItem value="silver">Silver</SelectItem>
+                <SelectItem value="gold">Gold</SelectItem>
               </SelectContent>
             </Select>
             <Select value={cardFilter} onValueChange={setCardFilter}>
@@ -121,7 +200,9 @@ export function MembershipsTable({ memberships, onDelete }: MembershipsTableProp
               <TableRow>
                 <TableHead>Member</TableHead>
                 <TableHead className="hidden md:table-cell">Email</TableHead>
-                <TableHead className="hidden lg:table-cell">Join Date</TableHead>
+                <TableHead className="hidden lg:table-cell">
+                  Join Date
+                </TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Card Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -132,22 +213,30 @@ export function MembershipsTable({ memberships, onDelete }: MembershipsTableProp
                 currentItems.map((member) => (
                   <TableRow key={member.id}>
                     <TableCell className="font-medium">{member.name}</TableCell>
-                    <TableCell className="hidden md:table-cell">{member.email}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {member.email}
+                    </TableCell>
                     <TableCell className="hidden lg:table-cell">
                       {new Date(member.joinDate).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
                       <Badge variant={getTypeBadgeVariant(member.type)}>
-                        {member.type.charAt(0).toUpperCase() + member.type.slice(1)}
+                        {member.type.charAt(0).toUpperCase() +
+                          member.type.slice(1)}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       {member.needsPhysicalCard ? (
-                        <Badge variant={getCardStatusBadgeVariant(member.cardStatus)}>
-                          {member.cardStatus.charAt(0).toUpperCase() + member.cardStatus.slice(1)}
+                        <Badge
+                          variant={getCardStatusBadgeVariant(member.cardStatus)}
+                        >
+                          {member.cardStatus.charAt(0).toUpperCase() +
+                            member.cardStatus.slice(1)}
                         </Badge>
                       ) : (
-                        <span className="text-muted-foreground text-sm">N/A</span>
+                        <span className="text-muted-foreground text-sm">
+                          N/A
+                        </span>
                       )}
                     </TableCell>
                     <TableCell className="text-right">
@@ -161,24 +250,32 @@ export function MembershipsTable({ memberships, onDelete }: MembershipsTableProp
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handlePreviewClick(member)}
+                          >
                             <Eye className="mr-2 h-4 w-4" />
                             View details
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          {/* <DropdownMenuItem>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit member
-                          </DropdownMenuItem>
+                          </DropdownMenuItem> */}
                           {member.needsPhysicalCard && (
                             <DropdownMenuItem>
                               <CreditCard className="mr-2 h-4 w-4" />
                               Update card status
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuItem onClick={() => onDelete(member.id)}>
+                          {member.lockRequested && (
+                            <DropdownMenuItem>
+                              <Lock className="mr-2 h-4 w-4" />
+                              Lock account
+                            </DropdownMenuItem>
+                          )}
+                          {/* <DropdownMenuItem onClick={() => onDelete(member.id)}>
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete member
-                          </DropdownMenuItem>
+                          </DropdownMenuItem> */}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -198,7 +295,8 @@ export function MembershipsTable({ memberships, onDelete }: MembershipsTableProp
         {filteredItems.length > itemsPerPage && (
           <div className="flex items-center justify-between mt-4">
             <div className="text-sm text-muted-foreground">
-              Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredItems.length)} of{" "}
+              Showing {indexOfFirstItem + 1} to{" "}
+              {Math.min(indexOfLastItem, filteredItems.length)} of{" "}
               {filteredItems.length} members
             </div>
             <div className="flex items-center space-x-2">
@@ -223,7 +321,18 @@ export function MembershipsTable({ memberships, onDelete }: MembershipsTableProp
             </div>
           </div>
         )}
+
+        {memberToPreview && (
+          <MembershipPreviewDialog
+            isOpen={previewDialogOpen}
+            onClose={() => {
+              setPreviewDialogOpen(false);
+              setMemberToPreview(null);
+            }}
+            member={memberToPreview}
+          />
+        )}
       </CardContent>
     </Card>
-  )
+  );
 }

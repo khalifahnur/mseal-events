@@ -35,7 +35,7 @@ export default function PreviewMerchDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
         <div className="bg-gradient-to-r from-black to-[#fae115] text-white p-2">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-center">
