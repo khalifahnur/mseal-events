@@ -1,5 +1,6 @@
 "use client";
-import { useRef } from "react";
+
+import { useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,24 +20,32 @@ import {
   Download,
   SquarePen,
 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Membership } from "../../../types/membership";
 import { MembershipCard } from "./membershipcard";
 import { maskExceptLastFour } from "@/lib/utils";
 import * as htmlToImage from "html-to-image";
 import download from "downloadjs";
+import { toast } from "sonner";
+import { WalletCard } from "./Wallet";
+
+interface MembershipPreviewDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  member: Membership
+}
 
 export default function MembershipPreviewDialog({
   isOpen,
   onClose,
   member,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  member: Membership;
-}) {
-  const printRef = useRef<HTMLDivElement>(null);
+}: MembershipPreviewDialogProps) {
+  const membershipCardRef = useRef<HTMLDivElement>(null);
+  const walletCardRef = useRef<HTMLDivElement>(null);
+  const [activeTab, setActiveTab] = useState<"membership" | "wallet">("membership");
 
-  const formatDate = (dateString: string | Date) => {
+  const formatDate = (dateString: string | Date | null | undefined) => {
+    if (!dateString) return "N/A";
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       weekday: "long",
@@ -74,59 +83,82 @@ export default function MembershipPreviewDialog({
     }
   };
 
-  // const handlePrint = () => {
-  //   const printContent = printRef.current;
-  //   if (!printContent) return;
-
-  //   const printWindow = window.open("", "_blank");
-  //   if (!printWindow) return;
-
-  //   printWindow.document.close();
-  //   printWindow.focus();
-  //   printWindow.print();
-  //   printWindow.close();
-  // };
-
-  const handlePrint = async () => {
-    if (!printRef.current) return;
+  const handlePrintOrDownload = async (ref: React.RefObject<HTMLDivElement | null>, action: "print" | "download") => { 
+    if (!ref.current) return;
 
     try {
-      const dataUrl = await htmlToImage.toPng(printRef.current, {
+      const dataUrl = await htmlToImage.toPng(ref.current, {
         backgroundColor: "#ffffff",
       });
-      download(dataUrl, `${member.name}-membershipcard.png`);
+      if (action === "download") {
+        download(dataUrl, `${member.name}-${activeTab}-card.png`);
+      } else {
+        const printWindow = window.open("", "_blank");
+        if (printWindow) {
+          printWindow.document.write(
+            `<html><body><img src="${dataUrl}" style="width: 100%;"></body></html>`
+          );
+          printWindow.document.close();
+          printWindow.focus();
+          printWindow.print();
+          printWindow.close();
+        }
+      }
     } catch (error) {
-      console.error("Download failed:", error);
+      console.error(`${action} failed:`, error);
+      toast.error(`Failed to ${action} card. Please try again.`, {
+        position: "top-right",
+      });
     }
   };
 
-  const handleWriteToNFC = async () => {
-    try {
-      if ("NDEFWriter" in window) {
-        const ndef = new (window as any).NDEFWriter();
 
-        const encryptedToken = member.qrcode;
+const handleWriteToNFC = async () => {
+  console.warn("btn clicked!", member.ecryptWalletId);
+  try {
+    if (!("NDEFWriter" in window)) {
+      throw new Error("Web NFC not supported on this device or browser");
+    }
 
+    const ndef = new (window as any).NDEFWriter();
+    const encryptedToken = member.ecryptWalletId;
+
+    if (!encryptedToken) {
+      throw new Error("No encrypted token available");
+    }
+
+    // Validate size
+    const tokenBytes = Buffer.from(encryptedToken, 'base64');
+    if (tokenBytes.length > 450) {
+      throw new Error("Token too large for NFC tag (~512 bytes capacity)");
+    }
+
+    let retries = 3;
+    while (retries > 0) {
+      try {
         await ndef.write({
           records: [
             {
-              recordType: "text",
-              data: encryptedToken,
-            },
-          ],
+              recordType: "unknown",
+              data: tokenBytes
+            }
+          ]
         });
-
-        alert("✅ Encrypted token written to NFC tag!");
-      } else {
-        alert("❌ Web NFC is not supported on this device or browser.");
+        alert("✅ Encrypted token written to NFC tag!\nTo lock the tag, use an NFC app like NXP TagWriter to set lock bits.");
+        return;
+      } catch (error) {
+        retries--;
+        if (retries === 0) {
+          throw error;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
-    } catch (error) {
-      console.error("NFC Write failed:", error);
-      alert(
-        "❌ Failed to write to NFC tag. Make sure it's close to the device."
-      );
     }
-  };
+  } catch (error:any) {
+    console.error("NFC Write failed:", error.name, error.message, error);
+    alert(`❌ Failed to write to NFC tag: ${error.message}\nEnsure the tag is close, unlocked, and NDEF-formatted.`);
+  }
+};
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -144,165 +176,237 @@ export default function MembershipPreviewDialog({
         </div>
 
         <div className="p-6 space-y-6">
-          <div className="text-center">
-            <h3 className="text-lg font-semibold mb-4 flex items-center justify-center gap-2">
-              <CreditCard className="h-5 w-5" />
-              Membership Card Preview
-            </h3>
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "membership" | "wallet")} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="membership">Membership</TabsTrigger>
+              <TabsTrigger value="wallet">Mseal Wallet</TabsTrigger>
+            </TabsList>
 
-            <div ref={printRef} className="flex justify-center mb-4">
-              <MembershipCard
-                memberName={member.name}
-                //memberNumber={member.id}
-                //balance={member.balance}
-                qrcode={member.qrcode}
-              />
-            </div>
+            <TabsContent value="membership">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold mb-4 flex items-center justify-center gap-2">
+                  <CreditCard className="h-5 w-5" />
+                  Membership Card Preview
+                </h3>
 
-            <div className="flex gap-2 justify-center">
-              <Button onClick={handlePrint} className="flex items-center gap-2">
-                <Printer className="h-4 w-4" />
-                Print Card
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handlePrint}
-                className="flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Download
-              </Button>
-              <Button
-                variant="outline"
-                className="flex items-center gap-2"
-                onClick={handleWriteToNFC}
-              >
-                <SquarePen className="h-4 w-4" />
-                Write
-              </Button>
-            </div>
-          </div>
-
-          <Separator />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-blue-100 p-2 rounded-full">
-                    <User className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 font-medium">
-                      Full Name
-                    </p>
-                    <p className="font-semibold text-gray-800">{member.name}</p>
-                  </div>
+                <div ref={membershipCardRef} className="flex justify-center mb-4">
+                  <MembershipCard
+                    memberName={member.name}
+                    qrcode={member.qrcode}
+                  />
                 </div>
-              </CardContent>
-            </Card>
 
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-green-100 p-2 rounded-full">
-                    <Mail className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 font-medium">Email</p>
-                    <p className="font-semibold text-gray-800">
-                      {member.email}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-purple-100 p-2 rounded-full">
-                    <Calendar className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 font-medium">
-                      Join Date
-                    </p>
-                    <p className="font-semibold text-gray-800">
-                      {formatDate(member.joinDate)}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-orange-100 p-2 rounded-full">
-                    <CreditCard className="h-5 w-5 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500 font-medium">
-                      Member ID
-                    </p>
-                    <p className="font-semibold text-gray-800 font-mono">
-                      {member.id ? maskExceptLastFour(member.id) : "N/A"}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Membership Status */}
-          <Card className="bg-gradient-to-r from-gray-50 to-gray-100 border-gray-200">
-            <CardContent className="p-4">
-              <h4 className="font-bold text-lg mb-4 text-gray-800">
-                Membership Status
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center">
-                  <p className="text-sm text-gray-500 font-medium mb-2">
-                    Membership Type
-                  </p>
-                  <Badge
-                    className={`${getMembershipTypeColor(
-                      member.type
-                    )} px-3 py-1 text-sm font-semibold uppercase`}
+                <div className="flex gap-2 justify-center">
+                  <Button
+                    onClick={() => handlePrintOrDownload(membershipCardRef, "print")}
+                    className="flex items-center gap-2"
                   >
-                    {member.type}
-                  </Badge>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-500 font-medium mb-2">
-                    Card Status
-                  </p>
-                  <Badge
-                    className={`${getStatusColor(
-                      member.cardStatus
-                    )} px-3 py-1 text-sm font-semibold uppercase`}
+                    <Printer className="h-4 w-4" />
+                    Print Card
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handlePrintOrDownload(membershipCardRef, "download")}
+                    className="flex items-center gap-2"
                   >
-                    {member.cardStatus}
-                  </Badge>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-500 font-medium mb-2">
-                    Physical Card
-                  </p>
-                  <Badge
-                    className={`${
-                      member.needsPhysicalCard
-                        ? "bg-blue-100 text-blue-800 border-blue-200"
-                        : "bg-gray-100 text-gray-800 border-gray-200"
-                    } px-3 py-1 text-sm font-semibold`}
-                  >
-                    {member.needsPhysicalCard ? "Required" : "Not Required"}
-                  </Badge>
+                    <Download className="h-4 w-4" />
+                    Download
+                  </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+
+              <Separator className="my-6" />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-blue-100 p-2 rounded-full">
+                        <User className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 font-medium">Full Name</p>
+                        <p className="font-semibold text-gray-800">{member.name}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-green-100 p-2 rounded-full">
+                        <Mail className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 font-medium">Email</p>
+                        <p className="font-semibold text-gray-800">{member.email}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-purple-100 p-2 rounded-full">
+                        <Calendar className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 font-medium">Join Date</p>
+                        <p className="font-semibold text-gray-800">{formatDate(member.joinDate)}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-orange-100 p-2 rounded-full">
+                        <CreditCard className="h-5 w-5 text-orange-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 font-medium">Member ID</p>
+                        <p className="font-semibold text-gray-800 font-mono">
+                          {member.id ? maskExceptLastFour(member.id) : "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card className="bg-gradient-to-r from-gray-50 to-gray-100 border-gray-200 mt-4">
+                <CardContent className="p-4">
+                  <h4 className="font-bold text-lg mb-4 text-gray-800">Membership Status</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <p className="text-sm text-gray-500 font-medium mb-2">Membership Type</p>
+                      <Badge
+                        className={`${getMembershipTypeColor(member.type)} px-3 py-1 text-sm font-semibold uppercase`}
+                      >
+                        {member.type}
+                      </Badge>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-gray-500 font-medium mb-2">Card Status</p>
+                      <Badge
+                        className={`${getStatusColor(member.cardStatus)} px-3 py-1 text-sm font-semibold uppercase`}
+                      >
+                        {member.cardStatus}
+                      </Badge>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-gray-500 font-medium mb-2">Physical Card</p>
+                      <Badge
+                        className={`${
+                          member.needsPhysicalCard
+                            ? "bg-blue-100 text-blue-800 border-blue-200"
+                            : "bg-gray-100 text-gray-800 border-gray-200"
+                        } px-3 py-1 text-sm font-semibold`}
+                      >
+                        {member.needsPhysicalCard ? "Required" : "Not Required"}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="wallet">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold mb-4 flex items-center justify-center gap-2">
+                  <CreditCard className="h-5 w-5" />
+                  Mseal Wallet Card Preview
+                </h3>
+
+                <div ref={walletCardRef} className="flex justify-center mb-4">
+                  <WalletCard
+                    qrcode={member.qrcode}
+                    createdAt={member.joinDate || null}
+                    expDate={member.expDate || null}
+                    membershipTier={member.membershipTier}
+                    cardNumber={member.cardNumber}
+                  />
+                </div>
+
+                <div className="flex gap-2 justify-center">
+                  <Button
+                    onClick={() => handlePrintOrDownload(walletCardRef, "print")}
+                    className="flex items-center gap-2"
+                  >
+                    <Printer className="h-4 w-4" />
+                    Print Card
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handlePrintOrDownload(walletCardRef, "download")}
+                    className="flex items-center gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleWriteToNFC}
+                    className="flex items-center gap-2"
+                  >
+                    <SquarePen className="h-4 w-4" />
+                    Write to NFC
+                  </Button>
+                </div>
+              </div>
+
+              <Separator className="my-6" />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-blue-100 p-2 rounded-full">
+                        <User className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 font-medium">Full Name</p>
+                        <p className="font-semibold text-gray-800">{member.name}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-green-100 p-2 rounded-full">
+                        <Mail className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 font-medium">Email</p>
+                        <p className="font-semibold text-gray-800">{member.email}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-purple-100 p-2 rounded-full">
+                        <Calendar className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 font-medium">Wallet Created</p>
+                        <p className="font-semibold text-gray-800">
+                          {formatDate(member.joinDate)}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </DialogContent>
     </Dialog>

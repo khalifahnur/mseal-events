@@ -41,6 +41,7 @@ import {
 import { fetchMembersInfo } from "@/lib/api";
 import MembershipPreviewDialog from "./PreviewDialog";
 import { Membership } from "../../../types/membership";
+import formatMonthYear from "@/lib/utils";
 
 // interface MembershipsTableProps {
 //   onDelete: (id: string) => void;
@@ -73,14 +74,17 @@ export function MembershipsTable() {
     id: member.membershipId || member.email,
     name: `${member.firstName} ${member.lastName}`,
     email: member.email,
-    joinDate: member.createdAt || new Date(),
+    joinDate: member.createdAt || null,
     type: member.membershipTier || "none",
     needsPhysicalCard: !member.physicalIdIssued,
     cardStatus: !member.physicalIdIssued ? "pending" : "delivered",
     lockRequested: member.lockRequested,
     balance: member.balance,
     qrcode: member.qrcode,
-    expDate: member.expDate,
+    expDate: member.expDate || null,
+    ecryptWalletId:member.ecryptWalletId,
+    membershipTier:member.membershipTier || null,
+    cardNumber:member.cardNumber || null
   }));
 
   const filteredItems = transformedMemberships.filter((member) => {
@@ -217,7 +221,7 @@ export function MembershipsTable() {
                       {member.email}
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      {new Date(member.joinDate).toLocaleDateString()}
+                      {formatMonthYear(member.joinDate)}
                     </TableCell>
                     <TableCell>
                       <Badge variant={getTypeBadgeVariant(member.type)}>
