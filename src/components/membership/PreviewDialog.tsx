@@ -116,19 +116,25 @@ export default function MembershipPreviewDialog({
 const handleWriteToNFC = async () => {
   console.warn("btn clicked!", member.ecryptWalletId);
   try {
-    if (!("NDEFWriter" in window)) {
+    // Use NDEFReader instead of NDEFWriter
+    if (!("NDEFReader" in window)) {
       throw new Error("Web NFC not supported on this device or browser");
     }
 
-    const ndef = new (window as any).NDEFWriter();
+    const ndef = new (window as any).NDEFReader();
     const encryptedToken = member.ecryptWalletId;
 
     if (!encryptedToken) {
       throw new Error("No encrypted token available");
     }
 
-    // Validate size
-    const tokenBytes = Buffer.from(encryptedToken, 'base64');
+    // Convert to Uint8Array (browser-compatible)
+    const binaryString = atob(encryptedToken);
+    const tokenBytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      tokenBytes[i] = binaryString.charCodeAt(i);
+    }
+
     if (tokenBytes.length > 450) {
       throw new Error("Token too large for NFC tag (~512 bytes capacity)");
     }
@@ -136,15 +142,15 @@ const handleWriteToNFC = async () => {
     let retries = 3;
     while (retries > 0) {
       try {
+        // Write using NDEFReader
         await ndef.write({
-          records: [
-            {
-              recordType: "unknown",
-              data: tokenBytes
-            }
-          ]
+          records: [{ recordType: "unknown", data: tokenBytes }]
         });
-        alert("✅ Encrypted token written to NFC tag!\nTo lock the tag, use an NFC app like NXP TagWriter to set lock bits.");
+        alert("✅ Encrypted token written to NFC tag!");
+        
+        // Make read-only
+        await ndef.makeReadOnly();
+        alert("🔒 Tag locked successfully!");
         return;
       } catch (error) {
         retries--;
@@ -154,9 +160,9 @@ const handleWriteToNFC = async () => {
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
-  } catch (error:any) {
-    console.error("NFC Write failed:", error.name, error.message, error);
-    alert(`❌ Failed to write to NFC tag: ${error.message}\nEnsure the tag is close, unlocked, and NDEF-formatted.`);
+  } catch (error: any) {
+    console.error("NFC Write failed:", error);
+    alert(`❌ Failed to write to NFC tag: ${error.message}\n\nEnsure:\n1. Tag is near device\n2. Tag is unlocked\n3. Tag is NDEF formatted`);
   }
 };
 
