@@ -129,13 +129,13 @@ const handleWriteToNFC = async () => {
     }
 
     // Convert to Uint8Array (browser-compatible)
-    const binaryString = atob(encryptedToken);
-    const tokenBytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      tokenBytes[i] = binaryString.charCodeAt(i);
-    }
+    // const binaryString = atob(encryptedToken);
+    // const tokenBytes = new Uint8Array(binaryString.length);
+    // for (let i = 0; i < binaryString.length; i++) {
+    //   tokenBytes[i] = binaryString.charCodeAt(i);
+    // }
 
-    if (tokenBytes.length > 450) {
+    if (encryptedToken.length > 450) {
       throw new Error("Token too large for NFC tag (~512 bytes capacity)");
     }
 
@@ -144,7 +144,7 @@ const handleWriteToNFC = async () => {
       try {
         // Write using NDEFReader
         await ndef.write({
-          records: [{ recordType: "unknown", data: tokenBytes }]
+          records: [{ recordType: "text", data: encryptedToken }]
         });
         alert("✅ Encrypted token written to NFC tag!");
         
