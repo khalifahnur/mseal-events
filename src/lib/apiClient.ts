@@ -13,7 +13,7 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use((config) => {
   const token = document.cookie
     .split("; ")
-    .find((row) => row.startsWith("token="))
+    .find((row) => row.startsWith("admin_auth="))
     ?.split("=")[1];
 
   if (token) {
