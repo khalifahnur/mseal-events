@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -187,6 +188,7 @@ export function EventForm({ onSuccess }: EventFormProps) {
                     <SelectValue placeholder="Select home team" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectGroup className="overflow-y-auto max-h-[10rem]">
                     {availableHomeTeams.map((team) => (
                       <SelectItem key={team.id} value={team.team}>
                         <div className="flex items-center gap-2">
@@ -203,6 +205,7 @@ export function EventForm({ onSuccess }: EventFormProps) {
                         </div>
                       </SelectItem>
                     ))}
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
                 {formData.homeLogoUrl && formData.homeTeam && (
@@ -235,6 +238,7 @@ export function EventForm({ onSuccess }: EventFormProps) {
                     <SelectValue placeholder="Select away team" />
                   </SelectTrigger>
                   <SelectContent>
+                     <SelectGroup className="overflow-y-auto max-h-[10rem]">
                     {availableAwayTeams.map((team) => (
                       <SelectItem key={team.id} value={team.team}>
                         <div className="flex items-center gap-2">
@@ -251,6 +255,7 @@ export function EventForm({ onSuccess }: EventFormProps) {
                         </div>
                       </SelectItem>
                     ))}
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
                 {formData.opponentLogoUrl && formData.awayTeam && (
@@ -335,7 +340,7 @@ export function EventForm({ onSuccess }: EventFormProps) {
                   name="ticketPrice"
                   type="number"
                   min="0"
-                  step="100"
+                  
                   value={formData.ticketPrice}
                   onChange={handleChange}
                   required

@@ -19,7 +19,7 @@ export function MembershipCard({
   //memberNumber,
   teamName = 'Muranga Seals',
   //balance,
-  logoUrl = "https://www.murangaseal.com/assets/logo-a25ccce319b09f73006dc94d71887dbd26f5afeec59c2fa5dca6afaf101fe82c.png",
+  logoUrl = "https://res.cloudinary.com/dfuh1q6ic/image/upload/v1751304986/mseal-logo_dcsiqz.png",
   qrcode,
 }: MembershipCardProps) {
   return (
