@@ -196,7 +196,7 @@ export default function StaffSignupTab() {
               <Button
                 type="submit"
                 disabled={isSubmitting || loading}
-                className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 rounded-md transition-colors duration-300 mt-4"
+                className="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-md transition-colors duration-300 mt-4"
               >
                 {loading ? (
                   <div className="flex items-center justify-center gap-2">

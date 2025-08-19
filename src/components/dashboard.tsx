@@ -13,19 +13,15 @@ export function Dashboard() {
   >("events");
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex flex-col">
       <TopNavigation
         activeSection={activeSection}
         setActiveSection={setActiveSection}
       />
-
-      <main className="flex-1 container mx-auto p-4 md:p-6">
+      <main className="flex-1 container mx-auto px-2 md:px-4 pb-20">
         {activeSection === "events" && <EventsSection />}
-
         {activeSection === "merchandise" && <MerchandiseSection />}
-
         {activeSection === "memberships" && <MembershipsSection />}
-
         {activeSection === "settings" && <SettingsSection />}
       </main>
     </div>
