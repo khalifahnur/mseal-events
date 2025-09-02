@@ -41,3 +41,11 @@ export interface EditMutationVariables {
   updatedItem: EventData;
   itemId: string;
 }
+export interface UpdateResponse {
+  message: string;
+  status: number;
+}
+
+export interface UpdateMerchandise {
+  itemId: string;
+}

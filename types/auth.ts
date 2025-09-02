@@ -39,3 +39,15 @@ export interface ErrorResponse {
   statusCode?: number;
   details?: any;
 }
+
+export interface adminSigninResponse {
+  message: string;
+}
+export interface signinData {
+  email: string;
+}
+
+export interface verifyCode {
+  email: string;
+  code: string;
+}
