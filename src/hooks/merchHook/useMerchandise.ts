@@ -2,6 +2,7 @@ import {
   createMerchandise,
   deleteMerchandise,
   editMerchandise,
+  updateOrder,
 } from "@/lib/api";
 import {
   DeleteMerchandise,
@@ -16,7 +17,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { DeleteResponse, EditResponse } from "../../../types/event";
+import { DeleteResponse, EditResponse, UpdateMerchandise, UpdateResponse } from "../../../types/event";
 
 export function useCreateMerchandise(): UseMutationResult<
   MerchResponse,
@@ -78,6 +79,25 @@ export function useEditMerch(): UseMutationResult<
     },
     onError: (error: ErrorResponse) => {
       console.error("Error updating merchandise :", error.message);
+    },
+  });
+}
+
+export function useUpdateOrder(): UseMutationResult<
+  UpdateResponse,
+  ErrorResponse,
+  UpdateMerchandise
+> {
+  const queryClient = useQueryClient();
+  return useMutation<UpdateResponse, ErrorResponse, UpdateMerchandise>({
+    mutationFn: ({ itemId }) => {
+      return updateOrder(itemId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+    onError: (error: ErrorResponse) => {
+      console.error("Updated merchandise error:", error.message);
     },
   });
 }
