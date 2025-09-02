@@ -1,7 +1,7 @@
 import apiClient from "@/lib/apiClient";
-import { AuthData, AuthResponse, AuthStaff, AuthStaffResponse } from "../../types/auth";
+import { adminSigninResponse, AuthData, AuthResponse, AuthStaff, AuthStaffResponse, signinData, verifyCode } from "../../types/auth";
 import { ErrorResponse, MerchResponse,Merchandise } from "../../types/merch";
-import { DeleteResponse, EditResponse, EventData, EventResponse } from "../../types/event";
+import { DeleteResponse, EditResponse, EventData, EventResponse, UpdateResponse } from "../../types/event";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const loginAdmin = async (data: AuthData): Promise<AuthResponse> => {
@@ -37,6 +37,14 @@ export const signUpAdmin = async (data: AuthData): Promise<AuthResponse> => {
       console.error("Network error or no response:", error);
       throw new Error("Network error or no response from server.");
     }
+  }
+};
+
+export const fetchLogout = async (): Promise<void> => {
+  const response = await apiClient.post("/auth-admin/logout-admin");
+
+  if (!response || response.status !== 200) {
+    throw new Error("Logout failed");
   }
 };
 
@@ -332,3 +340,90 @@ export async function fetchMembersInfo() {
     }
   }
 }
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export const adminSignin = async (
+  data: signinData
+): Promise<adminSigninResponse> => {
+  try {
+    const response = await apiClient.post<adminSigninResponse>(
+      "/auth-admin/signup-admin/verify-email",
+      data
+    );
+    return response.data;
+  } catch (error: any) {
+    if (error?.response) {
+      const errorMessage =
+        error?.response?.data ||
+        "An error occurred during Verify code.";
+      throw new Error(errorMessage);
+    } else {
+      // response (network issues, etc.)
+      throw new Error("Network error or no response from server.");
+    }
+  }
+};
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export const verifyPsswdCode = async (
+  data: verifyCode
+): Promise<adminSigninResponse> => {
+  try {
+    const response = await apiClient.post<adminSigninResponse>(
+      "/auth-admin/signup-admin/verify-code",
+      data
+    );
+    return response.data;
+  } catch (error: any) {
+    if (error?.response) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        "An error occurred during Verify code.";
+      throw new Error(errorMessage);
+    } else {
+      // response (network issues, etc.)
+      throw new Error("Network error or no response from server.");
+    }
+  }
+};
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export async function fetchOrders() {
+  try {
+    const response = await apiClient.get("/order/fetch-all-orders");
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Error fetching data");
+  }
+}
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export const updateOrder = async (
+  itemId: string
+): Promise<UpdateResponse> => {
+  try {
+    const response = await apiClient.put<UpdateResponse>(
+      `/order/update-order/${itemId}`
+    );
+    return response.data;
+  } catch (error: any) {
+    if (error?.response) {
+      console.error("Update item error:", error.response);
+
+      const errorMessage =
+        error.response.data?.message ||
+        "An error occurred while updating item.";
+
+      throw {
+        message: errorMessage,
+        statusCode: error.response.status,
+        details: error.response.data,
+      } as ErrorResponse;
+    } else {
+      console.error("Network error or no response:", error);
+      throw {
+        message: "Network error or no response from the server.",
+      } as ErrorResponse;
+    }
+  }
+};
