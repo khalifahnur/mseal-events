@@ -3,19 +3,39 @@
 import { useEffect, useState } from "react"
 import { AuthProvider, useAuth } from "@/components/auth/auth-context"
 import { AuthPage } from "@/components/auth/auth-page"
-import { Dashboard } from "@/components/dashboard"
 import { Toaster } from "@/components/ui/toaster"
+import { usePathname, useRouter } from "next/navigation"
 
 function AuthenticatedContent() {
   const { user, isLoading } = useAuth();
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState(false);
+  const [redirected, setRedirected] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || isLoading || redirected) return;
+
+    if (user && !pathname.startsWith("/events")) {
+      setRedirected(true);
+      router.replace('/events');
+    } else if (!user && pathname !== "/") {
+      setRedirected(true);
+      router.replace("/");
+    }
+  }, [mounted, isLoading, user, pathname, redirected, router]);
+
+  // Reset redirected state when user changes (e.g., after login)
+  useEffect(() => {
+    setRedirected(false);
+  }, [user]);
 
   if (!mounted) {
-    return null
+    return null;
   }
 
   if (isLoading) {
@@ -26,10 +46,16 @@ function AuthenticatedContent() {
     )
   }
 
-  return user ? <Dashboard /> : <AuthPage />
+  if (!user && pathname === "/") {
+    return <AuthPage />;
+  }
+
+  if (user && pathname.startsWith("/events")) {
+    return null;
+  }
+
+  return null;
 }
-
-
 
 export function AuthenticatedApp() {
   return (
@@ -37,5 +63,5 @@ export function AuthenticatedApp() {
       <AuthenticatedContent />
       <Toaster />
     </AuthProvider>
-  )
+  );
 }

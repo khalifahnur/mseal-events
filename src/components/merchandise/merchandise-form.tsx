@@ -10,15 +10,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useCreateMerchandise } from "@/hooks/merchHook/useMerchandise"
 import { toast } from "sonner"
-import { Merchandise } from "../../../types/merch"
 
-interface MerchandiseFormProps {
-  onSubmit: (item: Omit<Merchandise, "_id">) => void
-}
-
-
-
-export function MerchandiseForm({ onSubmit }: MerchandiseFormProps) {
+export function MerchandiseForm() {
   const createMerchandise = useCreateMerchandise();
   const [formData, setFormData] = useState({
     name: "",
@@ -81,7 +74,7 @@ export function MerchandiseForm({ onSubmit }: MerchandiseFormProps) {
 
   const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit(formData)
+    //onSubmit(formData)
     try {
       await createMerchandise.mutateAsync(formData);
     } catch (error) {

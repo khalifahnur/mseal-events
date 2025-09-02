@@ -42,6 +42,7 @@ import { fetchMembersInfo } from "@/lib/api";
 import MembershipPreviewDialog from "./PreviewDialog";
 import { Membership } from "../../../types/membership";
 import formatMonthYear from "@/lib/utils";
+import Loader from "../Loader";
 
 // interface MembershipsTableProps {
 //   onDelete: (id: string) => void;
@@ -77,14 +78,16 @@ export function MembershipsTable() {
     joinDate: member.createdAt || null,
     type: member.membershipTier || "none",
     needsPhysicalCard: !member.physicalIdIssued,
-    cardStatus: !member.physicalIdIssued ? "pending" : "delivered",
+    //cardStatus: !member.physicalIdIssued ? "pending" : "delivered",
     lockRequested: member.lockRequested,
     balance: member.balance,
     qrcode: member.qrcode,
     expDate: member.expDate || null,
     ecryptWalletId:member.ecryptWalletId,
     membershipTier:member.membershipTier || null,
-    cardNumber:member.cardNumber || null
+    cardNumber:member.cardNumber || null,
+    physicalNfcGiven:member?.physicalNfcGiven,
+    cardStatus:member?.cardStatus
   }));
 
   const filteredItems = transformedMemberships.filter((member) => {
@@ -122,13 +125,13 @@ export function MembershipsTable() {
 
   const getCardStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case "pending":
+      case "Active":
         return "outline";
-      case "processing":
+      case "Inactive":
         return "default";
-      case "shipped":
+      case "Suspended":
         return "secondary";
-      case "delivered":
+      case "Pending":
         return "outline";
       default:
         return "outline";
@@ -142,11 +145,7 @@ export function MembershipsTable() {
 
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="p-6 text-center">
-          Loading members...
-        </CardContent>
-      </Card>
+      <Loader />
     );
   }
 
@@ -209,6 +208,7 @@ export function MembershipsTable() {
                 </TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Card Status</TableHead>
+                <TableHead>Card Issued</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -230,18 +230,14 @@ export function MembershipsTable() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {member.needsPhysicalCard ? (
                         <Badge
                           variant={getCardStatusBadgeVariant(member.cardStatus)}
                         >
-                          {member.cardStatus.charAt(0).toUpperCase() +
-                            member.cardStatus.slice(1)}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">
-                          N/A
-                        </span>
-                      )}
+                          {member.cardStatus || 'N/A' }
+                        </Badge> 
+                    </TableCell>
+                    <TableCell>
+                      {member.needsPhysicalCard}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>

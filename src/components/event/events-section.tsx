@@ -1,9 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { EventForm } from "@/components/event/event-form";
 import { EventsTable } from "@/components/event/events-table";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { fetchEvents } from "@/lib/api";
@@ -13,14 +10,11 @@ import {
   Calendar,
   Ticket,
   TrendingUp,
-  Plus,
   BarChart3,
-  ArrowLeft,
 } from "lucide-react";
+import FloatingActionButton from "../FloatBtn";
 
 export function EventsSection() {
-  const [showAddForm, setShowAddForm] = useState(false);
-
   const { data, isLoading } = useQuery({
     queryKey: ["allEvents"],
     queryFn: fetchEvents,
@@ -51,22 +45,11 @@ export function EventsSection() {
     <div className="space-y-8 py-6">
       {/* Header Section */}
 
-      <div className="fixed bottom-10 right-2 bg-transparent">
-        <Button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="rounded-full w-16 h-16 flex items-center justify-center bg-gradient-to-r from-gray-700 to-[#fae115] hover:from-blue-700 hover:to-purple-700 text-white shadow-lg"
-          size="lg"
-        >
-          {showAddForm ? (
-            <ArrowLeft className="h-2 w-2" />
-          ) : (
-            <Plus className="h-2 w-2" />
-          )}
-        </Button>
-      </div>
+      <FloatingActionButton
+        tooltip="Add Events"
+        href='/events/add-events'
+      />
 
-      {/* Analytics Cards */}
-      {!showAddForm && (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900">
             <CardHeader className="pb-3">
@@ -147,14 +130,9 @@ export function EventsSection() {
             </CardContent>
           </Card>
         </div>
-      )}
 
       <div>
-        {showAddForm ? (
-            <EventForm />
-        ) : (
-          <EventsTable events={data?.events} />
-        )}
+       <EventsTable events={data?.events} />
       </div>
     </div>
   );
