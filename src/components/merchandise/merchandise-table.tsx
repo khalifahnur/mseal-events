@@ -228,7 +228,7 @@ export function MerchandiseTable({ merchandise }: MerchandiseTableProps) {
                     <TableCell>Ksh {item.price.toFixed(2)}</TableCell>
                     <TableCell>{item.stock}</TableCell>
                     <TableCell className="text-right">
-                      <DropdownMenu>
+                      <DropdownMenu modal={false}>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
                             <MoreHorizontal className="h-4 w-4" />

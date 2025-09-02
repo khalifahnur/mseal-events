@@ -167,7 +167,7 @@ const handleWriteToNFC = async () => {
 };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose} modal={false}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] p-0 max-h-[90vh] overflow-y-auto">
         <div className="bg-gradient-to-r from-[#000] to-[#fae115] text-white p-6">
           <DialogHeader>
