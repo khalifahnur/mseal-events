@@ -1,8 +1,7 @@
 import { useMutation, UseMutationResult, useQueryClient } from "@tanstack/react-query";
-import apiClient from "@/lib/apiClient";
-import { AuthData, AuthResponse, AuthStaff, AuthStaffResponse, ErrorResponse } from "../../../types/auth";
+import { adminSigninResponse, AuthData, AuthResponse, AuthStaff, AuthStaffResponse, ErrorResponse, signinData, verifyCode } from "../../../types/auth";
 import { toast } from "sonner";
-import { loginAdmin, signUpAdmin, signUpStaff } from "@/lib/api";
+import { adminSignin, loginAdmin, signUpAdmin, signUpStaff, verifyPsswdCode } from "@/lib/api";
 
 export function useLogin(): UseMutationResult<
   AuthResponse,
@@ -11,19 +10,13 @@ export function useLogin(): UseMutationResult<
 >  {
   return useMutation<AuthResponse, ErrorResponse, AuthData>({
     mutationFn: loginAdmin,
-    onSuccess: (data: AuthResponse) => {
-      console.log("Login successful:", data);
-    },
     onError: (error: ErrorResponse) => {
-      console.error(
-        `Login error (${error.statusCode || "Unknown"}): ${error.message}`
-      );
       toast.error(
         error.message || "An unexpected error occurred. Please try again."
       );
-      if (error.details) {
-        console.error("Additional error details:", error.details);
-      }
+      // if (error.details) {
+      //   console.error("Additional error details:", error.details);
+      // }
     },
   });
 }
@@ -40,18 +33,9 @@ export function useSignUp(): UseMutationResult<
     },
     onError: (error: ErrorResponse) => {
       toast.error(error.message || "Sign up failed. Please try again.");
-      console.error("Sign-up error:", error.message);
     },
   });
 }
-
-export const fetchLogout = async (): Promise<void> => {
-  const response = await apiClient.post("/auth-user/logout");
-
-  if (!response || response.status !== 200) {
-    throw new Error("Logout failed");
-  }
-};
 
 export function useStaffSignUp(): UseMutationResult<
   AuthStaffResponse,
@@ -63,10 +47,49 @@ export function useStaffSignUp(): UseMutationResult<
     mutationFn: signUpStaff,
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey:['']})
-      console.log("Sign-up staff successful:");
     },
     onError: (error: ErrorResponse) => {
       console.error("Sign-up staff error:", error.message);
+    },
+  });
+}
+
+
+export function useAdminSignin(): UseMutationResult<
+  adminSigninResponse,
+  ErrorResponse,
+  signinData
+> {
+  return useMutation<adminSigninResponse, ErrorResponse, signinData>({
+    mutationFn: adminSignin,
+    onError: (error: ErrorResponse) => {
+      toast.error(
+        error.message || "An unexpected error occurred. Please try again."
+      );
+      if (error.details) {
+        console.error("Additional error details:", error.details);
+      }
+    },
+  });
+}
+
+export function useVerifyCode(): UseMutationResult<
+  adminSigninResponse,
+  ErrorResponse,
+  verifyCode
+> {
+  return useMutation<adminSigninResponse, ErrorResponse, verifyCode>({
+    mutationFn: verifyPsswdCode,
+    onError: (error: ErrorResponse) => {
+      console.error(
+        `Verify code error (${error.statusCode || "Unknown"}): ${error.message}`
+      );
+      toast.error(
+        error.message || "An unexpected error occurred. Please try again."
+      );
+      if (error.details) {
+        console.error("Additional error details:", error.details);
+      }
     },
   });
 }
