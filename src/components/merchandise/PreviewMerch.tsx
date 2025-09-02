@@ -34,7 +34,7 @@ export default function PreviewMerchDialog({
   const stockStatus = getStockStatus(previewItem.stock);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onClose} modal={false}>
       <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
         <div className="bg-gradient-to-r from-black to-[#fae115] text-white p-2">
           <DialogHeader>

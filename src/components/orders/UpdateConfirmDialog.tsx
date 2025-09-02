@@ -20,7 +20,7 @@ export default function UpdateConfirmDialog({
   itemName: string | undefined;
 }) {
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onClose} modal={false}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Confirm Deletion</DialogTitle>
