@@ -34,7 +34,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initializeUser = async () => {
       try {
         const userData = await fetchAdminInfo();
-        console.log(userData)
         setUser(userData);
       } catch (err) {
         console.error("Failed to fetch user on init", err);
@@ -50,7 +49,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = () => {
     setUser(null)
     localStorage.removeItem("user")
-    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
   }
 
   return (

@@ -1,9 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { SignInForm } from "@/components/auth/sign-in-form"
 import { SignUpForm } from "@/components/auth/sign-up-form"
 import { Ticket } from "lucide-react"
+import SignIn from "./signIn"
 
 export function AuthPage() {
   const [isSignIn, setIsSignIn] = useState(true)
@@ -19,7 +19,7 @@ export function AuthPage() {
       </div>
 
       {isSignIn ? (
-        <SignInForm onSignUpClick={() => setIsSignIn(false)} />
+        <SignIn onSignUpClick={() => setIsSignIn(false)} />
       ) : (
         <SignUpForm onSignInClick={() => setIsSignIn(true)} />
       )}
