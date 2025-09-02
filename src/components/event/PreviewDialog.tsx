@@ -41,7 +41,7 @@ export default function PreviewItemDialog({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose} modal={false}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] p-0 max-h-200">
         <div className="bg-gradient-to-r from-[#fae115] to-black text-white p-6">
           <DialogHeader>
