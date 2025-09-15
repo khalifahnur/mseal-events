@@ -427,3 +427,34 @@ export const updateOrder = async (
     }
   }
 };
+
+export async function updatePhysicalCard(walletId: string, physicalNfcGiven: boolean) {
+ try {
+    const response = await apiClient.put(
+      `/auth-admin/update-physical-nfc-given/${walletId}`,{ 
+        physicalNfcGiven
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    if (error?.response) {
+      console.error("update-pysical-nfc-given:", error.response);
+
+      const errorMessage =
+        error.response.data?.message ||
+        "An error occurred while update-pysical-nfc-given.";
+
+      throw {
+        message: errorMessage,
+        statusCode: error.response.status,
+        details: error.response.data,
+      } as ErrorResponse;
+    } else {
+      console.error("Network error or no response:", error);
+      throw {
+        message: "Network error or no response from the server.",
+      } as ErrorResponse;
+    }
+  }
+}
+

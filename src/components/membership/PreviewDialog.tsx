@@ -7,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -53,34 +52,6 @@ export default function MembershipPreviewDialog({
       month: "long",
       day: "numeric",
     });
-  };
-
-  const getMembershipTypeColor = (type: string) => {
-    switch (type.toLowerCase()) {
-      case "bronze":
-        return "bg-amber-100 text-amber-800 border-amber-200";
-      case "silver":
-        return "bg-gray-100 text-gray-800 border-gray-200";
-      case "gold":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "platinum":
-        return "bg-purple-100 text-purple-800 border-purple-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "active":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "expired":
-        return "bg-red-100 text-red-800 border-red-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
   };
 
   const handlePrintOrDownload = async (ref: React.RefObject<HTMLDivElement | null>, action: "print" | "download") => { 
@@ -227,12 +198,12 @@ const handleWriteToNFC = async () => {
                 <Card className="hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="bg-blue-100 p-2 rounded-full">
-                        <User className="h-5 w-5 text-blue-600" />
+                      <div className="bg-purple-100 p-2 rounded-full">
+                        <Calendar className="h-5 w-5 text-purple-600" />
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 font-medium">Full Name</p>
-                        <p className="font-semibold text-gray-800">{member.name}</p>
+                        <p className="text-sm text-gray-500 font-medium">Join Date</p>
+                        <p className="font-semibold text-gray-800">{formatDate(member.joinDate)}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -245,26 +216,14 @@ const handleWriteToNFC = async () => {
                         <Mail className="h-5 w-5 text-green-600" />
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 font-medium">Email</p>
-                        <p className="font-semibold text-gray-800">{member.email}</p>
+                        <p className="text-sm text-gray-500 font-medium">Valid till</p>
+                        <p className="font-semibold text-gray-800">{formatDate(member.expDate)}</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-purple-100 p-2 rounded-full">
-                        <Calendar className="h-5 w-5 text-purple-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500 font-medium">Join Date</p>
-                        <p className="font-semibold text-gray-800">{formatDate(member.joinDate)}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                
 
                 <Card className="hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
@@ -283,41 +242,6 @@ const handleWriteToNFC = async () => {
                 </Card>
               </div>
 
-              <Card className="bg-gradient-to-r from-gray-50 to-gray-100 border-gray-200 mt-4">
-                <CardContent className="p-4">
-                  <h4 className="font-bold text-lg mb-4 text-gray-800">Membership Status</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <p className="text-sm text-gray-500 font-medium mb-2">Membership Type</p>
-                      <Badge
-                        className={`${getMembershipTypeColor(member.type)} px-3 py-1 text-sm font-semibold uppercase`}
-                      >
-                        {member.type}
-                      </Badge>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm text-gray-500 font-medium mb-2">Card Status</p>
-                      <Badge
-                        className={`${getStatusColor(member.cardStatus)} px-3 py-1 text-sm font-semibold uppercase`}
-                      >
-                        {member.cardStatus}
-                      </Badge>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm text-gray-500 font-medium mb-2">Physical Card</p>
-                      <Badge
-                        className={`${
-                          member.needsPhysicalCard
-                            ? "bg-blue-100 text-blue-800 border-blue-200"
-                            : "bg-gray-100 text-gray-800 border-gray-200"
-                        } px-3 py-1 text-sm font-semibold`}
-                      >
-                        {member.needsPhysicalCard ? "Required" : "Not Required"}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </TabsContent>
 
             <TabsContent value="wallet">
@@ -331,7 +255,6 @@ const handleWriteToNFC = async () => {
                   <WalletCard
                     qrcode={member.qrcode}
                     createdAt={member.joinDate || null}
-                    expDate={member.expDate || null}
                     membershipTier={member.membershipTier}
                     cardNumber={member.cardNumber}
                   />

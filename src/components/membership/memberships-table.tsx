@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -38,7 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { fetchMembersInfo } from "@/lib/api";
+import { fetchMembersInfo, updatePhysicalCard } from "@/lib/api";
 import MembershipPreviewDialog from "./PreviewDialog";
 import { Membership } from "../../../types/membership";
 import formatMonthYear from "@/lib/utils";
@@ -58,6 +58,7 @@ export function MembershipsTable() {
   );
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   const itemsPerPage = 5;
+  const queryClient = useQueryClient();
 
   const {
     data: memberships = [],
@@ -70,25 +71,39 @@ export function MembershipsTable() {
     retry: 2,
   });
 
+  
+
+  const { mutate: updateCardStatus, isPending: isUpdating } = useMutation({
+    mutationFn: ({ walletId, value }: { walletId: string; value: boolean }) =>
+      updatePhysicalCard(walletId, value),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["membersInfo"] }); 
+    },
+  });
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const transformedMemberships: Membership[] = memberships.map((member:any) => ({
-    id: member.membershipId || member.email,
-    name: `${member.firstName} ${member.lastName}`,
-    email: member.email,
-    joinDate: member.createdAt || null,
-    type: member.membershipTier || "none",
-    needsPhysicalCard: !member.physicalIdIssued,
-    //cardStatus: !member.physicalIdIssued ? "pending" : "delivered",
-    lockRequested: member.lockRequested,
-    balance: member.balance,
-    qrcode: member.qrcode,
-    expDate: member.expDate || null,
-    ecryptWalletId:member.ecryptWalletId,
-    membershipTier:member.membershipTier || null,
-    cardNumber:member.cardNumber || null,
-    physicalNfcGiven:member?.physicalNfcGiven,
-    cardStatus:member?.cardStatus
-  }));
+  const transformedMemberships: Membership[] = memberships.map(
+    (member: any) => ({
+      id: member.membershipId || member.email,
+      name: (member.firstName || member.lastName)
+  ? `${member.firstName ?? ''} ${member.lastName ?? ''}`.trim()
+  : '',
+      email: member.email,
+      joinDate: member.createdAt || null,
+      type: member.membershipTier || "none",
+      needsPhysicalCard: !member.physicalIdIssued,
+      //cardStatus: !member.physicalIdIssued ? "pending" : "delivered",
+      lockRequested: member.lockRequested,
+      balance: member.balance,
+      qrcode: member.qrcode,
+      expDate: member.expDate || null,
+      ecryptWalletId: member.ecryptWalletId,
+      membershipTier: member.membershipTier || null,
+      cardNumber: member.cardNumber || null,
+      physicalNfcGiven: member?.physicalNfcGiven,
+      cardStatus: member?.cardStatus,
+    })
+  );
 
   const filteredItems = transformedMemberships.filter((member) => {
     const matchesSearch =
@@ -144,9 +159,7 @@ export function MembershipsTable() {
   };
 
   if (isLoading) {
-    return (
-      <Loader />
-    );
+    return <Loader />;
   }
 
   if (error) {
@@ -160,8 +173,7 @@ export function MembershipsTable() {
   }
 
   return (
-    <Card>
-      <CardContent className="p-6">
+    <>
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="flex-1">
             <Input
@@ -197,7 +209,7 @@ export function MembershipsTable() {
           </div>
         </div>
 
-        <div className="rounded-md border">
+        <div className="rounded-md border bg-[#f8f8f8]">
           <Table>
             <TableHeader>
               <TableRow>
@@ -230,14 +242,18 @@ export function MembershipsTable() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                        <Badge
-                          variant={getCardStatusBadgeVariant(member.cardStatus)}
-                        >
-                          {member.cardStatus || 'N/A' }
-                        </Badge> 
+                      <Badge
+                        variant={getCardStatusBadgeVariant(member.cardStatus)}
+                      >
+                        {member.cardStatus || "N/A"}
+                      </Badge>
                     </TableCell>
                     <TableCell>
-                      {member.needsPhysicalCard}
+                      {member.needsPhysicalCard === false ? (
+                        <Badge variant="default">Pending</Badge>
+                      ) : (
+                        <Badge variant="default">Issued</Badge>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu modal={false}>
@@ -261,9 +277,19 @@ export function MembershipsTable() {
                             Edit member
                           </DropdownMenuItem> */}
                           {member.needsPhysicalCard && (
-                            <DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                updateCardStatus({
+                                  walletId: member.ecryptWalletId,
+                                  value: true,
+                                })
+                              }
+                              disabled={isUpdating}
+                            >
                               <CreditCard className="mr-2 h-4 w-4" />
-                              Update card status
+                              {isUpdating
+                                ? "Updating..."
+                                : "Update card status"}
                             </DropdownMenuItem>
                           )}
                           {member.lockRequested && (
@@ -332,7 +358,6 @@ export function MembershipsTable() {
             member={memberToPreview}
           />
         )}
-      </CardContent>
-    </Card>
+        </>
   );
 }

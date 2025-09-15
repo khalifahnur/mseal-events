@@ -95,7 +95,6 @@ export function SignUpForm({ onSignInClick }: SignUpFormProps) {
               <Input
                 id="firstName"
                 name="firstName"
-                placeholder="John"
                 required
                 value={formData.firstName}
                 onChange={handleChange}
@@ -106,7 +105,6 @@ export function SignUpForm({ onSignInClick }: SignUpFormProps) {
               <Input
                 id="lastName"
                 name="lastName"
-                placeholder="Doe"
                 required
                 value={formData.lastName}
                 onChange={handleChange}
@@ -131,7 +129,7 @@ export function SignUpForm({ onSignInClick }: SignUpFormProps) {
               id="phoneNumber"
               name="phoneNumber"
               type="tel"
-              placeholder="+254 (71) 456-7890"
+              placeholder="+254 (00) 000-000"
               value={formData.phoneNumber}
               onChange={handleChange}
             />

@@ -249,17 +249,7 @@ export default function SignIn({ onSignUpClick }: SignInFormProps) {
                   )}
                 </Button>
               </div>
-              <div className="text-center text-sm">
-                Don&apos;t have an account?{" "}
-                <Button
-                  variant="link"
-                  className="p-0 h-auto"
-                  onClick={onSignUpClick}
-                  type="button"
-                >
-                  Sign up
-                </Button>
-              </div>
+              
             </form>
           )}
 
@@ -272,7 +262,7 @@ export default function SignIn({ onSignUpClick }: SignInFormProps) {
                     className={`h-2 w-8 rounded-full ${
                       ["email", "code", "password"].indexOf(currentStep) >=
                       index
-                        ? "bg-blue-400"
+                        ? "bg-gray-900"
                         : "bg-gray-200"
                     }`}
                   />
@@ -280,7 +270,19 @@ export default function SignIn({ onSignUpClick }: SignInFormProps) {
               </div>
             </div>
           )}
+          
         </CardContent>
+        <div className="text-center text-sm text-black">
+                Don&apos;t have an account?{" "}
+                <Button
+                  variant="link"
+                  className="p-0 h-auto"
+                  onClick={onSignUpClick}
+                  type="button"
+                >
+                  Sign up
+                </Button>
+              </div>
       </Card>
   );
 }
